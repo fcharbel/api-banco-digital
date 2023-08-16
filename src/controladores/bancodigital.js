@@ -1,0 +1,1 @@
+const contas = require('../bancodedados');
