@@ -1,6 +1,6 @@
 
 const bancodigital = require('../bancodedados');
-const { contas, depositos } = bancodigital
+const { contas, depositos, saques } = bancodigital
 
 let numeroConta = contas.length + 1;
 
@@ -190,11 +190,68 @@ function listarDepositos(req, res) {
     return res.status(200).json(depositos);
 
 }
+
+function sacarDaConta(req, res) {
+    const { numero_conta, valor, senha } = req.body;
+
+    if (!numero_conta || !valor || !senha) {
+        res.status(400).json({ mensagem: 'O número da conta, valor e senha são obrigatórios!' });
+    }
+
+    const contaEncontrada = contas.find((conta) => {
+        return conta.numero == numero_conta;
+    });
+
+    if (!contaEncontrada) {
+        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+    }
+
+    if (contaEncontrada.usuario.senha !== senha) {
+        return res.status(401).json({ mensagem: 'Senha inválida!' })
+    }
+
+    if (!Number(valor) || valor <= 0) {
+        return res.status(401).json({ mensagem: 'Valor inválido!' })
+    }
+
+    if (contaEncontrada.saldo < valor) {
+        return res.status(400).json({ mensagem: 'Saldo insuficiente.' })
+    }
+
+    contaEncontrada.saldo -= valor;
+    saques.push({
+        data: new Date(),
+        numero_conta,
+        valor
+    })
+
+    return res.status(200).send();
+
+}
+
+function listarSaques(req, res) {
+    const { senha_banco } = req.query;
+
+    if (!senha_banco) {
+        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
+    }
+
+    if (senha_banco !== 'Cubos123Bank') {
+        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
+    }
+
+    return res.status(200).json(saques);
+
+}
+
+
 module.exports = {
     listarContas,
     criarConta,
     atualizarUsuario,
     excluirConta,
     depositarNaConta,
-    listarDepositos
+    listarDepositos,
+    sacarDaConta,
+    listarSaques
 }
