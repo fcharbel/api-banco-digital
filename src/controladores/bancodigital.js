@@ -1,3 +1,4 @@
+
 const bancodigital = require('../bancodedados');
 const { contas } = bancodigital
 
@@ -8,12 +9,14 @@ function validacaoDadosUsuario(req, res) {
 
     const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
 
-    if (!nome || nome.trim() === ''
-        || !cpf || cpf.trim() === ''
-        || !data_nascimento || data_nascimento.trim() === ''
-        || !telefone || telefone.trim() === ''
-        || !email || email.trim() === ''
-        || !senha || senha.trim() === '') {
+    if (
+        !nome || nome.trim() === '' ||
+        !cpf || cpf.trim() === '' ||
+        !data_nascimento || data_nascimento.trim() === '' ||
+        !telefone || telefone.trim() === '' ||
+        !email || email.trim() === '' ||
+        !senha || senha.trim() === ''
+    ) {
 
         return false;
     }
@@ -38,7 +41,7 @@ function listarContas(req, res) {
 function criarConta(req, res) {
     const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
 
-    if (!validacaoDadosUsuario) {
+    if (!validacaoDadosUsuario(req, res)) {
         return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios' });
     }
 
@@ -85,8 +88,8 @@ function atualizarUsuario(req, res) {
         return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
     }
 
-    if (!validacaoDadosUsuario) {
-        return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios.' });
+    if (!validacaoDadosUsuario(req, res)) {
+        return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios' });
     }
 
     const usuarioJaExiste = contas.find((conta) => {
