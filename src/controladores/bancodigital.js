@@ -24,6 +24,17 @@ function validacaoDadosUsuario(req, res) {
     return true;
 }
 
+function numeroContaValido(req, res) {
+    const { numero } = req.params;
+
+    if (!Number(numero)) {
+        return false;
+    }
+
+    return true;
+
+}
+
 function listarContas(req, res) {
     const { senha_banco } = req.query;
 
@@ -80,7 +91,7 @@ function atualizarUsuario(req, res) {
         return conta.numero == numero
     });
 
-    if (!Number(numero)) {
+    if (!numeroContaValido(req, res)) {
         return res.status(400).json({ mensagem: 'Número da conta inválido.' });
     }
 
@@ -111,5 +122,28 @@ function atualizarUsuario(req, res) {
 
 }
 
+function excluirConta(req, res) {
+    const { numero } = req.params;
 
-module.exports = { listarContas, criarConta, atualizarUsuario }
+    if (!numeroContaValido(req, res)) {
+        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
+    }
+
+    const contaEncontrada = contas.find((conta) => {
+        return conta.numero == numero
+    });
+
+    if (!contaEncontrada) {
+        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+    }
+
+    if (contaEncontrada.saldo !== 0) {
+        return res.status(401).json({ mensagem: 'A conta só pode ser removida se o saldo for zero!' });
+    }
+
+    contas.splice(contas.indexOf(contaEncontrada), 1);
+
+    return res.status(200).send();
+}
+
+module.exports = { listarContas, criarConta, atualizarUsuario, excluirConta }
