@@ -146,4 +146,35 @@ function excluirConta(req, res) {
     return res.status(200).send();
 }
 
-module.exports = { listarContas, criarConta, atualizarUsuario, excluirConta }
+function depositarNaConta(req, res) {
+    const { numero_conta, valor } = req.body;
+
+    if (!numero_conta || !valor) {
+        res.status(400).json({ mensagem: 'O número da conta e o valor são obrigatórios!' });
+    }
+
+    const contaEncontrada = contas.find((conta) => {
+        return conta.numero == numero_conta;
+    });
+
+    if (!contaEncontrada) {
+        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+    }
+
+    if (!Number(valor) || valor <= 0) {
+        return res.status(401).json({ mensagem: 'Valor inválido!' })
+    }
+
+    contaEncontrada.saldo += valor;
+
+    return res.status(200).send();
+
+}
+
+module.exports = {
+    listarContas,
+    criarConta,
+    atualizarUsuario,
+    excluirConta,
+    depositarNaConta
+}
