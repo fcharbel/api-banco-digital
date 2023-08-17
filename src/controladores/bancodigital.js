@@ -1,6 +1,6 @@
 
 const bancodigital = require('../bancodedados');
-const { contas } = bancodigital
+const { contas, depositos } = bancodigital
 
 let numeroConta = contas.length + 1;
 
@@ -166,15 +166,35 @@ function depositarNaConta(req, res) {
     }
 
     contaEncontrada.saldo += valor;
+    depositos.push({
+        data: new Date(),
+        numero_conta,
+        valor
+    })
 
     return res.status(200).send();
 
 }
 
+function listarDepositos(req, res) {
+    const { senha_banco } = req.query;
+
+    if (!senha_banco) {
+        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
+    }
+
+    if (senha_banco !== 'Cubos123Bank') {
+        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
+    }
+
+    return res.status(200).json(depositos);
+
+}
 module.exports = {
     listarContas,
     criarConta,
     atualizarUsuario,
     excluirConta,
-    depositarNaConta
+    depositarNaConta,
+    listarDepositos
 }
