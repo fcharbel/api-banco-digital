@@ -3,6 +3,23 @@ const { contas } = bancodigital
 
 let numeroDaConta = contas.length + 1;
 
+
+function validacaoDadosUsuario(req) {
+
+    const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
+
+    if (!nome || nome.trim() === ''
+        || !cpf || cpf.trim() === ''
+        || !data_nascimento || data_nascimento.trim() === ''
+        || !telefone || telefone.trim() === ''
+        || !email || email.trim() === ''
+        || !senha || senha.trim() === '') {
+
+        return false;
+    }
+
+    return true;
+}
 function listarContas(req, res) {
     const { senha_banco } = req.query;
 
@@ -20,13 +37,7 @@ function listarContas(req, res) {
 function criarConta(req, res) {
     const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
 
-    if (!nome || nome.trim() === ''
-        || !cpf || cpf.trim() === ''
-        || !data_nascimento || data_nascimento.trim() === ''
-        || !telefone || telefone.trim() === ''
-        || !email || email.trim() === ''
-        || !senha || senha.trim() === '') {
-
+    if (!validacaoDadosUsuario) {
         return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios' });
     }
 
@@ -56,6 +67,10 @@ function criarConta(req, res) {
     return res.status(201).json();
 
 }
+
+// function atualizarUsuario(req, res) {
+
+// }
 
 
 module.exports = { listarContas, criarConta }
