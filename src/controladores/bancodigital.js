@@ -1,10 +1,10 @@
 const bancodigital = require('../bancodedados');
 const { contas } = bancodigital
 
-let numeroDaConta = contas.length + 1;
+let numeroConta = contas.length + 1;
 
 
-function validacaoDadosUsuario(req) {
+function validacaoDadosUsuario(req, res) {
 
     const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
 
@@ -20,6 +20,7 @@ function validacaoDadosUsuario(req) {
 
     return true;
 }
+
 function listarContas(req, res) {
     const { senha_banco } = req.query;
 
@@ -41,17 +42,16 @@ function criarConta(req, res) {
         return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios' });
     }
 
-    const cpfOuEmailEncontrado = contas.find((conta) => {
+    const usuarioJaExiste = contas.find((conta) => {
         return conta.usuario.cpf === cpf || conta.usuario.email === email;
     });
 
-
-    if (cpfOuEmailEncontrado) {
+    if (usuarioJaExiste) {
         return res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' })
     }
 
     const novaConta = {
-        numero: numeroDaConta++,
+        numero: String(numeroConta),
         saldo: 0,
         usuario: {
             nome,
@@ -63,14 +63,50 @@ function criarConta(req, res) {
         }
     }
 
+    numeroConta++
     contas.push(novaConta);
     return res.status(201).json();
 
 }
 
-// function atualizarUsuario(req, res) {
+function atualizarUsuario(req, res) {
+    const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
+    const { numero } = req.params;
 
-// }
+    const contaEncontrada = contas.find((conta) => {
+        return conta.numero == numero
+    });
+
+    if (!Number(numero)) {
+        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
+    }
+
+    if (!contaEncontrada) {
+        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+    }
+
+    if (!validacaoDadosUsuario) {
+        return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios.' });
+    }
+
+    const usuarioJaExiste = contas.find((conta) => {
+        return conta.usuario.cpf === cpf || conta.usuario.email === email;
+    });
+
+    if (usuarioJaExiste) {
+        return res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' })
+    }
+
+    contaEncontrada.usuario.nome = nome;
+    contaEncontrada.usuario.cpf = cpf;
+    contaEncontrada.usuario.data_nascimento = data_nascimento;
+    contaEncontrada.usuario.telefone = telefone;
+    contaEncontrada.usuario.email = email;
+    contaEncontrada.usuario.senha = senha;
+
+    return res.status(203).send();
+
+}
 
 
-module.exports = { listarContas, criarConta }
+module.exports = { listarContas, criarConta, atualizarUsuario }
