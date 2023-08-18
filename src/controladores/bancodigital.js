@@ -1,5 +1,6 @@
 
 const bancodigital = require('../bancodedados');
+const { format } = require('date-fns')
 const { contas, depositos, saques, transferencias } = bancodigital
 
 let numeroConta = contas.length + 1;
@@ -167,7 +168,7 @@ function depositarNaConta(req, res) {
 
     contaEncontrada.saldo += valor;
     depositos.push({
-        data: new Date(),
+        data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
         numero_conta,
         valor
     })
@@ -220,7 +221,7 @@ function sacarDaConta(req, res) {
 
     contaEncontrada.saldo -= valor;
     saques.push({
-        data: new Date(),
+        data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
         numero_conta,
         valor
     })
@@ -283,7 +284,7 @@ function transferirDaConta(req, res) {
     contaDestino.saldo += valor;
 
     transferencias.push({
-        data: new Date(),
+        data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
         numero_conta_origem,
         numero_conta_destino,
         valor
@@ -335,6 +336,44 @@ function obterSaldo(req, res) {
 
 }
 
+function obterExtrato(req, res) {
+    const { numero_conta, senha } = req.query;
+
+    const contaEncontrada = contas.find((conta) => {
+        return conta.numero == numero_conta
+    });
+
+    if (!contaEncontrada) {
+        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
+    }
+
+    if (!Number(numero_conta)) {
+        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
+    }
+
+    if (!senha) {
+        return res.status(400).json({ mensagem: 'Senha não informada.' });
+    }
+
+    if (senha !== contaEncontrada.usuario.senha) {
+        return res.status(401).json({ mensagem: 'Senha inválida.' });
+    }
+
+    const depositosDaConta = depositos.filter(deposito => deposito.numero_conta === numero_conta);
+    const saquesDaConta = saques.filter(saque => saque.numero_conta === numero_conta);
+    const transferenciasEnviadas = transferencias.filter(transferenciaEnviada => transferenciaEnviada.numero_conta_origem === numero_conta);
+    const transferenciasRecebidas = transferencias.filter(transferenciaRecebida => transferenciaRecebida.numero_conta_destino === numero_conta);
+
+    const extrato = {
+        depositos: depositosDaConta,
+        saques: saquesDaConta,
+        transferenciasEnviadas,
+        transferenciasRecebidas
+    }
+
+    return res.status(200).json(extrato)
+
+}
 
 module.exports = {
     listarContas,
@@ -347,5 +386,6 @@ module.exports = {
     listarSaques,
     transferirDaConta,
     listarTransferencias,
-    obterSaldo
+    obterSaldo,
+    obterExtrato
 }

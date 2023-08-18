@@ -10,7 +10,8 @@ const {
     listarSaques,
     transferirDaConta,
     listarTransferencias,
-    obterSaldo
+    obterSaldo,
+    obterExtrato
 } = require('./controladores/bancodigital');
 
 const rotas = express();
@@ -26,6 +27,7 @@ rotas.get('/saques', listarSaques);
 rotas.post('/transacoes/transferir', transferirDaConta);
 rotas.get('/transferencias', listarTransferencias);
 rotas.get('/contas/saldo', obterSaldo);
+rotas.get('/contas/extrato', obterExtrato);
 
 
 
