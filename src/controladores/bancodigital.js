@@ -1,6 +1,6 @@
 
 const bancodigital = require('../bancodedados');
-const { contas, depositos, saques } = bancodigital
+const { contas, depositos, saques, transferencias } = bancodigital
 
 let numeroConta = contas.length + 1;
 
@@ -96,7 +96,7 @@ function atualizarUsuario(req, res) {
     }
 
     if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
     }
 
     if (!validacaoDadosUsuario(req, res)) {
@@ -134,7 +134,7 @@ function excluirConta(req, res) {
     });
 
     if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
     }
 
     if (contaEncontrada.saldo !== 0) {
@@ -158,7 +158,7 @@ function depositarNaConta(req, res) {
     });
 
     if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
     }
 
     if (!Number(valor) || valor <= 0) {
@@ -203,7 +203,7 @@ function sacarDaConta(req, res) {
     });
 
     if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Número da conta não encontrado.' });
+        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
     }
 
     if (contaEncontrada.usuario.senha !== senha) {
@@ -244,6 +244,97 @@ function listarSaques(req, res) {
 
 }
 
+function transferirDaConta(req, res) {
+    const { numero_conta_origem, numero_conta_destino, valor, senha } = req.body;
+
+    if (!numero_conta_origem || !numero_conta_destino || !valor || !senha) {
+        res.status(400).json({ mensagem: 'O número da conta, valor e senha são obrigatórios!' });
+    }
+
+    const contaOrigem = contas.find((conta) => {
+        return conta.numero == numero_conta_origem;
+    });
+
+    const contaDestino = contas.find((conta) => {
+        return conta.numero == numero_conta_destino;
+    });
+
+    if (!contaDestino) {
+        return res.status(404).json({ mensagem: 'Conta bancária de destino não encontrado.' });
+    }
+
+    if (!contaOrigem) {
+        return res.status(404).json({ mensagem: 'Conta bancária de origem não encontrado.' });
+    }
+
+    if (contaOrigem.usuario.senha !== senha) {
+        return res.status(401).json({ mensagem: 'Senha inválida!' })
+    }
+
+    if (!Number(valor) || valor <= 0) {
+        return res.status(401).json({ mensagem: 'Valor inválido!' })
+    }
+
+    if (contaOrigem.saldo < valor) {
+        return res.status(400).json({ mensagem: 'Saldo insuficiente.' })
+    }
+
+    contaOrigem.saldo -= valor;
+    contaDestino.saldo += valor;
+
+    transferencias.push({
+        data: new Date(),
+        numero_conta_origem,
+        numero_conta_destino,
+        valor
+    })
+
+    return res.status(200).send();
+
+}
+
+function listarTransferencias(req, res) {
+    const { senha_banco } = req.query;
+
+    if (!senha_banco) {
+        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
+    }
+
+    if (senha_banco !== 'Cubos123Bank') {
+        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
+    }
+
+    return res.status(200).json(transferencias);
+
+}
+
+function obterSaldo(req, res) {
+    const { numero_conta, senha } = req.query;
+
+    const contaEncontrada = contas.find((conta) => {
+        return conta.numero == numero_conta
+    });
+
+    if (!contaEncontrada) {
+        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
+    }
+
+    if (!Number(numero_conta)) {
+        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
+    }
+
+    if (!senha) {
+        return res.status(400).json({ mensagem: 'Senha não informada.' });
+    }
+
+    if (senha !== contaEncontrada.usuario.senha) {
+        return res.status(401).json({ mensagem: 'Senha inválida.' });
+    }
+
+    return res.status(200).json({ mensagem: `saldo: ${contaEncontrada.saldo}` })
+
+}
+
 
 module.exports = {
     listarContas,
@@ -253,5 +344,8 @@ module.exports = {
     depositarNaConta,
     listarDepositos,
     sacarDaConta,
-    listarSaques
+    listarSaques,
+    transferirDaConta,
+    listarTransferencias,
+    obterSaldo
 }
