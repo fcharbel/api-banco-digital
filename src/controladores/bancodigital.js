@@ -2,50 +2,21 @@
 const bancodigital = require('../bancodedados');
 const { format } = require('date-fns')
 const { contas, depositos, saques, transferencias } = bancodigital
+const {
+    validacaoDadosUsuario,
+    validarNumeroConta,
+    validarSenha,
+    usuarioJaExiste,
+    encontrarConta,
+    validarValorPositivo
+} = require('./utils');
 
 let numeroConta = contas.length + 1;
-
-
-function validacaoDadosUsuario(req, res) {
-
-    const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
-
-    if (
-        !nome || nome.trim() === '' ||
-        !cpf || cpf.trim() === '' ||
-        !data_nascimento || data_nascimento.trim() === '' ||
-        !telefone || telefone.trim() === '' ||
-        !email || email.trim() === '' ||
-        !senha || senha.trim() === ''
-    ) {
-
-        return false;
-    }
-
-    return true;
-}
-
-function numeroContaValido(req, res) {
-    const { numero } = req.params;
-
-    if (!Number(numero)) {
-        return false;
-    }
-
-    return true;
-
-}
 
 function listarContas(req, res) {
     const { senha_banco } = req.query;
 
-    if (!senha_banco) {
-        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
-    }
-
-    if (senha_banco !== 'Cubos123Bank') {
-        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
-    }
+    validarSenha(senha_banco, 'Cubos123Bank', res);
 
     return res.status(200).json(contas);
 }
@@ -53,90 +24,56 @@ function listarContas(req, res) {
 function criarConta(req, res) {
     const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
 
-    if (!validacaoDadosUsuario(req, res)) {
-        return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios' });
-    }
+    const dadosValidos = validacaoDadosUsuario(req, res);
+    const usuarioEncontrado = usuarioJaExiste(req, res);
 
-    const usuarioJaExiste = contas.find((conta) => {
-        return conta.usuario.cpf === cpf || conta.usuario.email === email;
-    });
-
-    if (usuarioJaExiste) {
-        return res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' })
-    }
-
-    const novaConta = {
-        numero: String(numeroConta),
-        saldo: 0,
-        usuario: {
-            nome,
-            cpf,
-            data_nascimento,
-            telefone,
-            email,
-            senha
+    if (dadosValidos && !usuarioEncontrado) {
+        const novaConta = {
+            numero: String(numeroConta),
+            saldo: 0,
+            usuario: {
+                nome,
+                cpf,
+                data_nascimento,
+                telefone,
+                email,
+                senha
+            }
         }
+
+        numeroConta++
+        contas.push(novaConta);
+        return res.status(201).json();
     }
-
-    numeroConta++
-    contas.push(novaConta);
-    return res.status(201).json();
-
 }
 
 function atualizarUsuario(req, res) {
     const { nome, cpf, data_nascimento, telefone, email, senha } = req.body;
     const { numero } = req.params;
 
-    const contaEncontrada = contas.find((conta) => {
-        return conta.numero == numero
-    });
+    const contaValida = validarNumeroConta(numero, res);
+    const dadosValidos = validacaoDadosUsuario(req, res);
+    const usuarioEncontrado = usuarioJaExiste(req, res);
+    if (contaValida && dadosValidos && !usuarioEncontrado) {
 
-    if (!numeroContaValido(req, res)) {
-        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
+        const contaEncontrada = encontrarConta(numero, res);
+
+        contaEncontrada.usuario.nome = nome;
+        contaEncontrada.usuario.cpf = cpf;
+        contaEncontrada.usuario.data_nascimento = data_nascimento;
+        contaEncontrada.usuario.telefone = telefone;
+        contaEncontrada.usuario.email = email;
+        contaEncontrada.usuario.senha = senha;
+
+        return res.status(203).send();
     }
-
-    if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
-    }
-
-    if (!validacaoDadosUsuario(req, res)) {
-        return res.status(400).json({ mensagem: 'Todos os dados são obrigatórios' });
-    }
-
-    const usuarioJaExiste = contas.find((conta) => {
-        return conta.usuario.cpf === cpf || conta.usuario.email === email;
-    });
-
-    if (usuarioJaExiste) {
-        return res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' })
-    }
-
-    contaEncontrada.usuario.nome = nome;
-    contaEncontrada.usuario.cpf = cpf;
-    contaEncontrada.usuario.data_nascimento = data_nascimento;
-    contaEncontrada.usuario.telefone = telefone;
-    contaEncontrada.usuario.email = email;
-    contaEncontrada.usuario.senha = senha;
-
-    return res.status(203).send();
-
 }
 
 function excluirConta(req, res) {
     const { numero } = req.params;
 
-    if (!numeroContaValido(req, res)) {
-        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
-    }
-
-    const contaEncontrada = contas.find((conta) => {
-        return conta.numero == numero
-    });
-
-    if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
-    }
+    validarNumeroConta(numero, res)
+    const contaEncontrada = encontrarConta(numero, res);
 
     if (contaEncontrada.saldo !== 0) {
         return res.status(401).json({ mensagem: 'A conta só pode ser removida se o saldo for zero!' });
@@ -150,44 +87,28 @@ function excluirConta(req, res) {
 function depositarNaConta(req, res) {
     const { numero_conta, valor } = req.body;
 
-    if (!numero_conta || !valor) {
-        res.status(400).json({ mensagem: 'O número da conta e o valor são obrigatórios!' });
+    const contaValida = validarNumeroConta(numero_conta, res);
+    const valorPositivo = validarValorPositivo(valor, res);
+    const contaEncontrada = encontrarConta(numero_conta, res);
+
+    if (contaValida && valorPositivo && contaEncontrada) {
+
+        contaEncontrada.saldo += valor;
+        depositos.push({
+            data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            numero_conta,
+            valor
+        })
+
+        return res.status(200).send();
+
     }
-
-    const contaEncontrada = contas.find((conta) => {
-        return conta.numero == numero_conta;
-    });
-
-    if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
-    }
-
-    if (!Number(valor) || valor <= 0) {
-        return res.status(401).json({ mensagem: 'Valor inválido!' })
-    }
-
-    contaEncontrada.saldo += valor;
-    depositos.push({
-        data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
-        numero_conta,
-        valor
-    })
-
-    return res.status(200).send();
-
 }
 
 function listarDepositos(req, res) {
     const { senha_banco } = req.query;
 
-    if (!senha_banco) {
-        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
-    }
-
-    if (senha_banco !== 'Cubos123Bank') {
-        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
-    }
-
+    validarSenha(senha_banco, 'Cubos123Bank', res);
     return res.status(200).json(depositos);
 
 }
@@ -195,52 +116,33 @@ function listarDepositos(req, res) {
 function sacarDaConta(req, res) {
     const { numero_conta, valor, senha } = req.body;
 
-    if (!numero_conta || !valor || !senha) {
-        res.status(400).json({ mensagem: 'O número da conta, valor e senha são obrigatórios!' });
+    const contaValida = validarNumeroConta(numero_conta, res);
+    const contaEncontrada = encontrarConta(numero_conta, res);
+    const senhaValida = validarSenha(senha, contaEncontrada.usuario.senha, res);
+    const valorPositivo = validarValorPositivo(valor, res);
+
+    if (senhaValida && valorPositivo && contaValida) {
+
+        if (contaEncontrada.saldo < valor) {
+            return res.status(400).json({ mensagem: 'Saldo insuficiente.' })
+        }
+
+        contaEncontrada.saldo -= valor;
+        saques.push({
+            data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            numero_conta,
+            valor
+        })
+
+        return res.status(200).send();
+
     }
-
-    const contaEncontrada = contas.find((conta) => {
-        return conta.numero == numero_conta;
-    });
-
-    if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
-    }
-
-    if (contaEncontrada.usuario.senha !== senha) {
-        return res.status(401).json({ mensagem: 'Senha inválida!' })
-    }
-
-    if (!Number(valor) || valor <= 0) {
-        return res.status(401).json({ mensagem: 'Valor inválido!' })
-    }
-
-    if (contaEncontrada.saldo < valor) {
-        return res.status(400).json({ mensagem: 'Saldo insuficiente.' })
-    }
-
-    contaEncontrada.saldo -= valor;
-    saques.push({
-        data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
-        numero_conta,
-        valor
-    })
-
-    return res.status(200).send();
-
 }
 
 function listarSaques(req, res) {
     const { senha_banco } = req.query;
 
-    if (!senha_banco) {
-        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
-    }
-
-    if (senha_banco !== 'Cubos123Bank') {
-        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
-    }
-
+    validarSenha(senha_banco, 'Cubos123Bank', res);
     return res.status(200).json(saques);
 
 }
@@ -248,63 +150,37 @@ function listarSaques(req, res) {
 function transferirDaConta(req, res) {
     const { numero_conta_origem, numero_conta_destino, valor, senha } = req.body;
 
-    if (!numero_conta_origem || !numero_conta_destino || !valor || !senha) {
-        res.status(400).json({ mensagem: 'O número da conta, valor e senha são obrigatórios!' });
+    const contaOrigem = encontrarConta(numero_conta_origem, res);
+    const contaDestino = encontrarConta(numero_conta_destino, res);
+
+    const senhaValida = validarSenha(senha, contaOrigem.usuario.senha, res);
+    const valorPositivo = validarValorPositivo(valor, res);
+
+    if (contaOrigem && contaDestino && senhaValida && valorPositivo) {
+
+        if (contaOrigem.saldo < valor) {
+            return res.status(400).json({ mensagem: 'Saldo insuficiente.' })
+        }
+
+        contaOrigem.saldo -= valor;
+        contaDestino.saldo += valor;
+
+        transferencias.push({
+            data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            numero_conta_origem,
+            numero_conta_destino,
+            valor
+        })
+
+        return res.status(200).send();
+
     }
-
-    const contaOrigem = contas.find((conta) => {
-        return conta.numero == numero_conta_origem;
-    });
-
-    const contaDestino = contas.find((conta) => {
-        return conta.numero == numero_conta_destino;
-    });
-
-    if (!contaDestino) {
-        return res.status(404).json({ mensagem: 'Conta bancária de destino não encontrado.' });
-    }
-
-    if (!contaOrigem) {
-        return res.status(404).json({ mensagem: 'Conta bancária de origem não encontrado.' });
-    }
-
-    if (contaOrigem.usuario.senha !== senha) {
-        return res.status(401).json({ mensagem: 'Senha inválida!' })
-    }
-
-    if (!Number(valor) || valor <= 0) {
-        return res.status(401).json({ mensagem: 'Valor inválido!' })
-    }
-
-    if (contaOrigem.saldo < valor) {
-        return res.status(400).json({ mensagem: 'Saldo insuficiente.' })
-    }
-
-    contaOrigem.saldo -= valor;
-    contaDestino.saldo += valor;
-
-    transferencias.push({
-        data: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
-        numero_conta_origem,
-        numero_conta_destino,
-        valor
-    })
-
-    return res.status(200).send();
-
 }
 
 function listarTransferencias(req, res) {
     const { senha_banco } = req.query;
 
-    if (!senha_banco) {
-        return res.status(400).json({ mensagem: 'A senha do banco não foi informada' })
-    }
-
-    if (senha_banco !== 'Cubos123Bank') {
-        return res.status(401).json({ mensagem: 'A senha do banco informada é inválida' })
-    }
-
+    validarSenha(senha_banco, 'Cubos123Bank', res);
     return res.status(200).json(transferencias);
 
 }
@@ -312,25 +188,9 @@ function listarTransferencias(req, res) {
 function obterSaldo(req, res) {
     const { numero_conta, senha } = req.query;
 
-    const contaEncontrada = contas.find((conta) => {
-        return conta.numero == numero_conta
-    });
-
-    if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
-    }
-
-    if (!Number(numero_conta)) {
-        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
-    }
-
-    if (!senha) {
-        return res.status(400).json({ mensagem: 'Senha não informada.' });
-    }
-
-    if (senha !== contaEncontrada.usuario.senha) {
-        return res.status(401).json({ mensagem: 'Senha inválida.' });
-    }
+    validarNumeroConta(numero_conta, res);
+    const contaEncontrada = encontrarConta(numero_conta, res);
+    validarSenha(senha, contaEncontrada.usuario.senha, res);
 
     return res.status(200).json({ mensagem: `saldo: ${contaEncontrada.saldo}` })
 
@@ -339,25 +199,9 @@ function obterSaldo(req, res) {
 function obterExtrato(req, res) {
     const { numero_conta, senha } = req.query;
 
-    const contaEncontrada = contas.find((conta) => {
-        return conta.numero == numero_conta
-    });
-
-    if (!contaEncontrada) {
-        return res.status(404).json({ mensagem: 'Conta bancária não encontrada.' });
-    }
-
-    if (!Number(numero_conta)) {
-        return res.status(400).json({ mensagem: 'Número da conta inválido.' });
-    }
-
-    if (!senha) {
-        return res.status(400).json({ mensagem: 'Senha não informada.' });
-    }
-
-    if (senha !== contaEncontrada.usuario.senha) {
-        return res.status(401).json({ mensagem: 'Senha inválida.' });
-    }
+    validarNumeroConta(numero_conta, res);
+    const contaEncontrada = encontrarConta(numero_conta, res);
+    validarSenha(senha, contaEncontrada.usuario.senha, res);
 
     const depositosDaConta = depositos.filter(deposito => deposito.numero_conta === numero_conta);
     const saquesDaConta = saques.filter(saque => saque.numero_conta === numero_conta);
