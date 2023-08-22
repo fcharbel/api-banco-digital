@@ -1,7 +1,7 @@
 
 const bancodigital = require('../bancodedados');
 const { format } = require('date-fns')
-const { contas, depositos, saques, transferencias } = bancodigital
+const { contas, depositos, saques, transferencias, banco } = bancodigital
 const {
     validacaoDadosUsuario,
     validarNumeroConta,
@@ -17,9 +17,12 @@ let numeroConta = contas.length + 1;
 function listarContas(req, res) {
     const { senha_banco } = req.query;
 
-    validarSenha(senha_banco, 'Cubos123Bank', res);
+    const senhaValida = validarSenha(senha_banco, banco.senha, res);
 
-    return res.status(200).json(contas);
+    if (senhaValida) {
+
+        return res.status(200).json(contas);
+    }
 }
 
 function criarConta(req, res) {
@@ -109,9 +112,11 @@ function depositarNaConta(req, res) {
 function listarDepositos(req, res) {
     const { senha_banco } = req.query;
 
-    validarSenha(senha_banco, 'Cubos123Bank', res);
-    return res.status(200).json(depositos);
+    const senhaValida = validarSenha(senha_banco, banco.senha, res);
 
+    if (senhaValida) {
+        return res.status(200).json(depositos);
+    }
 }
 
 function sacarDaConta(req, res) {
@@ -143,9 +148,11 @@ function sacarDaConta(req, res) {
 function listarSaques(req, res) {
     const { senha_banco } = req.query;
 
-    validarSenha(senha_banco, 'Cubos123Bank', res);
-    return res.status(200).json(saques);
+    const senhaValida = validarSenha(senha_banco, banco.senha, res);
 
+    if (senhaValida) {
+        return res.status(200).json(saques);
+    }
 }
 
 function transferirDaConta(req, res) {
@@ -181,9 +188,11 @@ function transferirDaConta(req, res) {
 function listarTransferencias(req, res) {
     const { senha_banco } = req.query;
 
-    validarSenha(senha_banco, 'Cubos123Bank', res);
-    return res.status(200).json(transferencias);
+    const senhaValida = validarSenha(senha_banco, banco.senha, res);
 
+    if (senhaValida) {
+        return res.status(200).json(transferencias);
+    }
 }
 
 function obterSaldo(req, res) {

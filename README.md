@@ -1,23 +1,30 @@
-# API de Banco Digital
+<h1 align="center"> 
+	API Banco Digital 
+</h1>
 
-## Índice
+<p align="center">
+	<img alt="Status Em Desenvolvimento" src="https://img.shields.io/badge/STATUS-EM%20DESENVOLVIMENTO-green">
 
-- [Título](#api-de-banco-digital)
-- [Índice](#índice)
-- [Descrição e Status do Projeto](#page_facing_up-descrição-do-projeto)
-- [Funcionalidades da Aplicação](#hammer-funcionalidades-da-aplicação)
-- [Pré Requisitos](#dizzy-pré-requisitos)
-- [Rodando o Backend](#game_die-rodando-o-backend-servidor)
-- [Executando o Projeto](#arrow_forward-executando-o-projeto)
-- [Testando a API](#computer-testando-a-api)
+ </p>
+
+<p align="center">
+ <a href="#coin-sobre-o-projeto">Sobre</a> •
+ <a href="#gear-funcionalidades">Funcionalidades</a> •
+ <a href="#dizzy-pré-requisitos">Pré Requisitos</a> • 
+ <a href="#robot-rodando-o-backend-servidor">Rodando o backend</a> • 
+ <a href="#arrow_forward-executando-o-projeto">Executando o projeto</a> • 
+ <a href="#computer-testando-a-api">Testando a API</a> •
+ <a href="#autor">Autor</a> • 
+</p>
 
 
-## :page_facing_up: Descrição do Projeto
+## :coin: Sobre o projeto
+
 O piloto de uma API de banco digital desenvolvida em JavaScript, focada no backend, que oferece funcionalidades completas para gerenciar contas bancárias e realizar operações financeiras.
 
-![#status do projeto](http://img.shields.io/static/v1?label=STATUS&message=EM%20DESENVOLVIMENTO&color=GREEN&style=for-the-badge)
+---  
 
-## :hammer: Funcionalidades da aplicação
+## :gear: Funcionalidades
 
 - Listar contas bancárias
 - Atualizar usuário da conta bancária
@@ -31,6 +38,7 @@ O piloto de uma API de banco digital desenvolvida em JavaScript, focada no backe
 - Listar depósitos
 - Listar transferências
 
+---
 
 ## :dizzy: Pré-requisitos
  
@@ -38,7 +46,9 @@ Antes de começar, você vai precisar ter instalado em sua máquina as seguintes
 [Git](https://git-scm.com), [Node.js](https://nodejs.org/en/). 
 Além disto é bom ter um editor para trabalhar com o código como [VSCode](https://code.visualstudio.com/)
 
-## :game_die: Rodando o Backend (servidor)
+---
+
+## :robot: Rodando o Backend (servidor)
 
 ```bash
 # Clone este repositório
@@ -55,6 +65,8 @@ $ npm run dev
 
 # O servidor inciará na porta:3000 - acesse <http://localhost:3000>
 ```
+--- 
+
 ## :arrow_forward: Executando o Projeto
 
 Para iniciar o servidor e começar a utilizar a API, você pode executar o seguinte comando:
@@ -67,13 +79,14 @@ O servidor será iniciado utilizando o Nodemon, o que permite que você faça al
 ## :computer: Testando a API
 Para testar a API, você pode usar o [Insomnia](https://insomnia.rest/download), que é uma plataforma para testar e documentar APIs. 
 
-###  Criar conta bancária: 
+![](https://insomnia.rest/images/run.svg)
+###  🔗 Criar conta bancária: 
 #### `POST` `/contas`
 Faz a listagem de todas as contas bancárias do banco, mediante senha informada (passada como query params na url).
 
 ![](./assets/listar-contas.png)
 
-### Atualizar usuário da conta bancária
+### 🔗 Atualizar usuário da conta bancária
 
 #### `PUT` `/contas/:numeroConta/usuario`
 
@@ -81,7 +94,7 @@ Atualiza os dados de usuário de uma conta bancária.
 
 ![](./assets/atualizar-usuario.png)
 
-### Excluir Conta
+### 🔗 Excluir Conta
 
 #### `DELETE` `/contas/:numeroConta`
 
@@ -89,7 +102,7 @@ Esta funcionalidade exclui uma conta bancária existente.
 
 ![](./assets/excluir-conta.png)
 
-### Depositar
+### 🔗 Depositar
 
 #### `POST` `/transacoes/depositar`
 
@@ -97,7 +110,7 @@ Soma o valor do depósito ao saldo de uma conta válida e registra essa transaç
 
 ![](./assets/depositar.png)
 
-### Sacar
+### 🔗 Sacar
 
 #### `POST` `/transacoes/sacar`
 
@@ -106,7 +119,7 @@ Realiza o saque de um valor em uma determinada conta bancária e registra essa t
 ![](./assets/sacar.png)
 
 
-### Tranferir
+### 🔗 Tranferir
 
 #### `POST` `/transacoes/transferir`
 
@@ -114,7 +127,7 @@ Permite a transferência de recursos (dinheiro) de uma conta bancária para outr
 
 ![](./assets/transferir.png)
 
-### Saldo
+### 🔗 Saldo
 
 #### `GET` `/contas/saldo?numero_conta=123&senha=123`
 
@@ -123,7 +136,7 @@ Esta funcionalidade retorna o saldo de uma conta bancária. Na url deverá ser p
 ![](./assets/saldo.png)
 
 
-### Extrato
+### 🔗 Extrato
 
 #### `GET` `/contas/extrato?numero_conta=123&senha=123`
 
@@ -132,7 +145,7 @@ Lista todas as transações realizadas de uma conta específica.
 ![](./assets/extrato.png)
 
 
-### Listar depósitos
+### 🔗 Listar depósitos
 
 #### `GET` `/depositos?senha_banco=Cubos123Bank`
 
@@ -140,7 +153,7 @@ Faz a listagem de todos os depósitos realizados no banco, mediante senha inform
 
 ![](./assets/listar-depositos.png)
 
-### Listar saques
+### 🔗 Listar saques
 
 #### `GET` `/saques?senha_banco=Cubos123Bank`
 
@@ -149,7 +162,7 @@ Faz a listagem de todos os saques realizados no banco, mediante senha informada 
 ![](./assets/listar-saques.png)
 
 
-### Listar transferências
+### 🔗 Listar transferências
 
 #### `GET` `/transferencias?senha_banco=Cubos123Bank`
 
@@ -158,8 +171,20 @@ Faz a listagem de todos as transferências realizadas no banco, mediante senha i
 ![](./assets/listar-transferencias.png)
 
 
-### :memo: Observações
+### 📝 Observações
 Certifique-se de que as bibliotecas utilizadas, como ```express```, ```nodemon```, e ```date-fns```, estão sendo instaladas automaticamente pelo comando ```npm install```. Caso contrário, verifique se elas estão listadas corretamente no arquivo ```package.json``` sob a seção ```dependencies```.
+
+---
+
+## 🤝 Como contribuir para o projeto
+
+1. Faça um **fork** do projeto.
+2. Crie uma nova branch com as suas alterações: `git checkout -b my-feature`
+3. Salve as alterações e crie uma mensagem de commit contando o que você fez: `git commit -m "feature: My new feature"`
+4. Envie as suas alterações: `git push origin my-feature`
+
+
+---
 
 ##  Autor
 
