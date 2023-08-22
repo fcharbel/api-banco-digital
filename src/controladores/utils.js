@@ -54,6 +54,7 @@ function validarSenha(senha, senhaCorreta, res) {
 
 function encontrarConta(numero, res) {
     const contaEncontrada = contas.find(conta => conta.numero == numero);
+
     if (!contaEncontrada) {
         res.status(404).json({ mensagem: `Conta bancária número ${numero} não encontrada.` });
         return false;
@@ -69,11 +70,31 @@ function usuarioJaExiste(req, res) {
     });
 
     if (usuario) {
-        res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' })
+        res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' });
         return true;
     }
 
     return false;
+}
+
+function cpfOuEmailJaExistem(numero, cpf, email) {
+
+    const contaEncontrada = contas.find(conta => conta.numero == numero);
+
+    const demaisContas = contas.filter((conta) => {
+        return conta.numero !== contaEncontrada.numero;
+    });
+
+    const usuarioEncontrado = demaisContas.find((conta) => {
+        return conta.usuario.cpf === cpf || conta.usuario.email === email;
+    });
+
+    if (usuarioEncontrado) {
+        res.status(400).json({ mensagem: 'Já existe uma conta com o cpf ou e-mail informado!' });
+        return false;
+    }
+
+    return true;
 }
 
 function validarValorPositivo(valor, res) {
@@ -90,6 +111,7 @@ module.exports = {
     validarNumeroConta,
     validarSenha,
     usuarioJaExiste,
+    cpfOuEmailJaExistem,
     encontrarConta,
-    validarValorPositivo
+    validarValorPositivo,
 }

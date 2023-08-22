@@ -7,6 +7,7 @@ const {
     validarNumeroConta,
     validarSenha,
     usuarioJaExiste,
+    cpfOuEmailJaExistem,
     encontrarConta,
     validarValorPositivo
 } = require('./utils');
@@ -53,10 +54,10 @@ function atualizarUsuario(req, res) {
 
     const contaValida = validarNumeroConta(numero, res);
     const dadosValidos = validacaoDadosUsuario(req, res);
-    const usuarioEncontrado = usuarioJaExiste(req, res);
-    if (contaValida && dadosValidos && !usuarioEncontrado) {
+    const contaEncontrada = encontrarConta(numero, res);
+    const cpfOuEmailValidos = cpfOuEmailJaExistem(numero, cpf, email);
 
-        const contaEncontrada = encontrarConta(numero, res);
+    if (contaValida && contaEncontrada && dadosValidos && cpfOuEmailValidos) {
 
         contaEncontrada.usuario.nome = nome;
         contaEncontrada.usuario.cpf = cpf;
