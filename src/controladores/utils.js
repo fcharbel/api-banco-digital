@@ -77,7 +77,7 @@ function usuarioJaExiste(req, res) {
     return false;
 }
 
-function cpfOuEmailJaExistem(numero, cpf, email) {
+function cpfOuEmailJaExistem(numero, cpf, email, res) {
 
     const contaEncontrada = contas.find(conta => conta.numero == numero);
 

@@ -55,7 +55,7 @@ function atualizarUsuario(req, res) {
     const contaValida = validarNumeroConta(numero, res);
     const dadosValidos = validacaoDadosUsuario(req, res);
     const contaEncontrada = encontrarConta(numero, res);
-    const cpfOuEmailValidos = cpfOuEmailJaExistem(numero, cpf, email);
+    const cpfOuEmailValidos = cpfOuEmailJaExistem(numero, cpf, email, res);
 
     if (contaValida && contaEncontrada && dadosValidos && cpfOuEmailValidos) {
 
@@ -66,7 +66,7 @@ function atualizarUsuario(req, res) {
         contaEncontrada.usuario.email = email;
         contaEncontrada.usuario.senha = senha;
 
-        return res.status(203).send();
+        return res.status(200).send();
     }
 }
 
