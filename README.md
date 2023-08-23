@@ -189,7 +189,7 @@ Certifique-se de que as bibliotecas utilizadas, como ```express```, ```nodemon``
 ##  Autor
 
 <a href="https://www.linkedin.com/in/fernanda-charbel/">
- <img style="border-radius: 50%;" src="./assets/autora.png" width="100px;" alt=""/>
+ <img style="border-radius: 50%;" src="./assets/autora.PNG" width="100px;" alt=""/>
  <br />
  <sub><b>Fernanda Charbel</b></sub></a> <a href="https://www.linkedin.com/in/fernanda-charbel/" title=""> 🌺 </a>
  <br />
