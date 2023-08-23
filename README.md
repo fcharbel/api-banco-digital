@@ -119,7 +119,7 @@ Realiza o saque de um valor em uma determinada conta bancária e registra essa t
 ![](./assets/sacar.png)
 
 
-### 🔗 Tranferir
+### 🔗 Transferir
 
 #### `POST` `/transacoes/transferir`
 
